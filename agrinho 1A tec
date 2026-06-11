@@ -1,0 +1,73 @@
+import tkinter as tk
+from tkinter import messagebox
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+DATA_FILE = "data/resultados.csv"
+
+ not os.path.exists("data"):
+    os.makedirs("data")
+ not os.path.isfile(DATA_FILE):
+    df = pd.DataFrame(columns=["Participante", "Área (m²)", "Produção (kg)"])
+    df.to_csv(DATA_FILE, index=False)
+
+def registrar():
+    nome = entry_nome.get()
+    try:
+        area = float(entry_area.get())
+        producao = float(entry_producao.get())
+    except ValueError:
+        messagebox.showerror("Erro", "Área e produção devem ser números.")
+        return
+    df = pd.read_csv(DATA_FILE)
+    df = df.append({"Participante": nome, "Área (m²)": area, "Produção (kg)": producao}, ignore_index=True)
+    df.to_csv(DATA_FILE, index=False)
+    messagebox.showinfo("Sucesso", f"Dados de {nome} registrados!")
+    entry_nome.delete(0, tk.END)
+    entry_area.delete(0, tk.END)
+    entry_producao.delete(0, tk.END)
+
+def gerar_grafico():
+    df = pd.read_csv(DATA_FILE)
+df.empty:
+        messagebox.showwarning("Aviso", "Nenhum dado para gerar gráfico.")
+        return
+    plt.bar(df["Participante"], df["Produção (kg)"], color="green")
+    plt.xlabel("Participante")
+    plt.ylabel("Produção (kg)")
+    plt.title("Produção por Participante - Agrinho 2026")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+def analise_sustentavel():
+    df = pd.read_csv(DATA_FILE)
+    df.empty:
+        messagebox.showwarning("Aviso", "Nenhum dado para análise.")
+        return
+    df["Produção por m²"] = df["Produção (kg)"] / df["Área (m²)"]
+    mensagem = "\n".join([f"{row['Participante']}: {row['Produção por m²']:.2f} kg/m²" for _, row in df.iterrows()])
+    messagebox.showinfo("Análise de Sustentabilidade", mensagem)
+
+root = tk.Tk()
+root.title("Agrinho 2026")
+
+tk.Label(root, text="Nome do participante:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+entry_nome = tk.Entry(root)
+entry_nome.grid(row=0, column=1, padx=5, pady=5)
+
+tk.Label(root, text="Área plantada (m²):").grid(row=1, column=0, padx=5, pady=5, sticky="e")
+entry_area = tk.Entry(root)
+entry_area.grid(row=1, column=1, padx=5, pady=5)
+
+tk.Label(root, text="Produção (kg):").grid(row=2, column=0, padx=5, pady=5, sticky="e")
+entry_producao = tk.Entry(root)
+entry_producao.grid(row=2, column=1, padx=5, pady=5)
+
+tk.Button(root, text="Registrar", command=registrar).grid(row=3, column=0, columnspan=2, pady=10)
+tk.Button(root, text="Gerar gráfico", command=gerar_grafico).grid(row=4, column=0, columnspan=2, pady=5)
+tk.Button(root, text="Análise de sustentabilidade", command=analise_sustentavel).grid(row=5, column=0, columnspan=2, pady=5)
+
+root.mainloop()
+                          
